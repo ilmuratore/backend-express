@@ -11,7 +11,7 @@ const SALT_ROUND = 12;
 
 // Registrazione
 const registra = async ({ nome, cognome, email, password }) => {
-  // 🔒 FIX #2 — il parametro "ruolo" è stato rimosso dalla firma.
+  // FIX #2 — il parametro "ruolo" è stato rimosso dalla firma.
   // Chiunque poteva inviare { ruolo: "admin" } durante la registrazione
   // e ottenere privilegi amministrativi.
   // Il ruolo viene sempre impostato a 'utente': solo un admin già
