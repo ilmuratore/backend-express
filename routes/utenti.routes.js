@@ -80,10 +80,31 @@ const regolaAggiorna = [
     .optional().trim().toLowerCase()
     .isEmail().withMessage('Formato email non valido'),
 
-  // Il ruolo può essere cambiato solo da un admin (vedi route PATCH sotto)
   body('ruolo')
     .optional()
-    .isIn(['admin', 'utente']).withMessage('Il ruolo deve essere "admin" o "utente"'),
+    .isIn(['utente']).withMessage('Il ruolo non puo essere cambiato'),
+];
+
+const regolaPromuovi = [
+  param('id').isInt({ min: 1 }).withMessage('L\'id deve essere un numero intero positivo'),
+
+  body('nome')
+    .optional().trim()
+    .notEmpty().withMessage('Il nome non può essere vuoto')
+    .isLength({ max: 100 }).withMessage('Il nome non può superare 100 caratteri'),
+
+  body('cognome')
+    .optional().trim()
+    .notEmpty().withMessage('Il cognome non può essere vuoto')
+    .isLength({ max: 255 }).withMessage('Il cognome non può superare 255 caratteri'),
+
+  body('email')
+    .optional().trim().toLowerCase()
+    .isEmail().withMessage('Formato email non valido'),
+
+  body('ruolo')
+    .optional()
+    .isIn(['admin']).withMessage('Il ruolo non puo essere diverso da admin per la promozione'),
 ];
 
 // ── Route pubbliche (senza autenticazione) ────────────────────
@@ -102,6 +123,9 @@ router.get('/:id', autenticato, soloSéOAdmin, regolaId, validate, controller.ge
 // FIX #3 — solo se Admin: solo l'utente stesso o un admin
 // può modificare un profilo
 router.patch('/:id', autenticato, soloSéOAdmin, regolaAggiorna, validate, controller.aggiorna);
+
+//FIX 7# endpoint dedicato per la promozione
+router.patch('/:id/promuovi' , autenticato, soloAdmin, regolaPromuovi, validate, controller.aggiorna)
 
 // Solo admin può eliminare un utente
 router.delete('/:id', autenticato, soloAdmin, regolaId, validate, controller.elimina);
