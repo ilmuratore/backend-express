@@ -8,6 +8,7 @@ const express      = require('express');
 const errorHandler = require('./middleware/errorHandler');
 const helmet       = require('helmet');
 const rateLimit    = require('express-rate-limit');
+const seedAdmin    = require('./middleware/seeder');
 // const cors = require('cors'); // Decommentare quando si collega il frontend
 
 require('dotenv').config(); // Carica le variabili da .env in process.env
@@ -22,6 +23,7 @@ const prestitiModel = require('./models/prestiti');
 const utenteRoutes   = require('./routes/utenti.routes');
 const libriRoutes    = require('./routes/libri.routes');
 const prestitiRoutes = require('./routes/prestiti.routes');
+const libriMassiviRoutes   = require('./routes/libriMassivi.routes');
 
 const app  = express();
 const port = process.env.PORT;
@@ -67,6 +69,10 @@ app.use('/api/utente',   utenteRoutes);
 app.use('/api/libri',    libriRoutes);
 app.use('/api/prestiti', prestitiRoutes);
 
+// ── Route secondarie ─────────────────────────────────────────
+app.use('/api/libri' , libriMassiviRoutes);
+
+
 // ── Catch-all 404 ────────────────────────────────────────────
 // Se nessuna route sopra ha risposto, l'endpoint richiesto non esiste.
 app.use((req, res) => {
@@ -87,6 +93,8 @@ const start = async () => {
     await utenteModel.init();
     await libriModel.init();
     await prestitiModel.init();
+
+    await seedAdmin();
 
     console.log('✅ Tabelle sincronizzate');
 
