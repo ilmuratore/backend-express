@@ -1,0 +1,229 @@
+# ============================================================
+#  .gitignore — Java / Spring Boot + Node.js / React / SASS
+# ============================================================
+
+
+# ───────────────────────────────────────────────────────────
+#  JAVA & MAVEN / GRADLE
+# ───────────────────────────────────────────────────────────
+*.class
+*.jar
+*.war
+*.ear
+*.nar
+*.zip
+*.tar.gz
+*.rar
+
+target/
+build/
+out/
+bin/
+dist/
+
+.mvn/wrapper/maven-wrapper.jar
+!.mvn/wrapper/maven-wrapper.properties
+
+hs_err_pid*
+replay_pid*
+
+# Gradle
+.gradle/
+gradle-app.setting
+!gradle-wrapper.jar
+!gradle-wrapper.properties
+
+
+# ───────────────────────────────────────────────────────────
+#  SPRING BOOT / APPLICATION CONFIG
+# ───────────────────────────────────────────────────────────
+application-local.properties
+application-local.yml
+application-secret.properties
+application-secret.yml
+*.env
+.env
+.env.*
+!.env.example
+
+
+# ───────────────────────────────────────────────────────────
+#  LOGS
+# ───────────────────────────────────────────────────────────
+*.log
+*.log.*
+logs/
+log/
+spring.log
+
+
+# ───────────────────────────────────────────────────────────
+#  NODE.JS / NPM / YARN
+# ───────────────────────────────────────────────────────────
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+.pnpm-store/
+.npm/
+.yarn/
+!.yarn/patches
+!.yarn/plugins
+!.yarn/releases
+!.yarn/sdks
+!.yarn/versions
+
+package-lock.json
+yarn.lock
+pnpm-lock.yaml
+
+
+# ───────────────────────────────────────────────────────────
+#  REACT / VITE / WEBPACK
+# ───────────────────────────────────────────────────────────
+dist/
+build/
+.cache/
+.parcel-cache/
+.vite/
+.next/
+.nuxt/
+.output/
+.vercel/
+.netlify/
+
+
+# ───────────────────────────────────────────────────────────
+#  SASS / CSS BUILD ARTIFACTS
+# ───────────────────────────────────────────────────────────
+*.css.map
+*.sass.map
+*.scss.map
+.sass-cache/
+
+
+# ───────────────────────────────────────────────────────────
+#  TYPESCRIPT
+# ───────────────────────────────────────────────────────────
+*.tsbuildinfo
+tsconfig.tsbuildinfo
+
+
+# ───────────────────────────────────────────────────────────
+#  DATABASE / PERSISTENCE
+# ───────────────────────────────────────────────────────────
+*.sql.bak
+*.db
+*.sqlite
+*.h2.mv.db
+*.h2.trace.db
+data/
+
+
+# ───────────────────────────────────────────────────────────
+#  IDE — IntelliJ IDEA
+# ───────────────────────────────────────────────────────────
+.idea/
+*.iml
+*.iws
+*.ipr
+out/
+.idea_modules/
+
+
+# ───────────────────────────────────────────────────────────
+#  IDE — VS Code
+# ───────────────────────────────────────────────────────────
+.vscode/
+!.vscode/extensions.json
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+
+
+# ───────────────────────────────────────────────────────────
+#  IDE — Eclipse / STS
+# ───────────────────────────────────────────────────────────
+.classpath
+.project
+.settings/
+.springBeans
+.sts4-cache/
+bin/
+
+
+# ───────────────────────────────────────────────────────────
+#  OS — macOS
+# ───────────────────────────────────────────────────────────
+.DS_Store
+.AppleDouble
+.LSOverride
+._*
+.Spotlight-V100
+.Trashes
+
+
+# ───────────────────────────────────────────────────────────
+#  OS — Windows
+# ───────────────────────────────────────────────────────────
+Thumbs.db
+Thumbs.db:encryptable
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+*.lnk
+
+
+# ───────────────────────────────────────────────────────────
+#  OS — Linux
+# ───────────────────────────────────────────────────────────
+*~
+.fuse_hidden*
+.Trash-*
+.nfs*
+
+
+# ───────────────────────────────────────────────────────────
+#  TEST & COVERAGE
+# ───────────────────────────────────────────────────────────
+coverage/
+.nyc_output/
+*.lcov
+test-results/
+surefire-reports/
+jacoco.exec
+*.exec
+
+
+# ───────────────────────────────────────────────────────────
+#  DOCKER
+# ───────────────────────────────────────────────────────────
+.dockerignore
+docker-compose.override.yml
+
+
+# ───────────────────────────────────────────────────────────
+#  SECRETS & CREDENTIALS
+# ───────────────────────────────────────────────────────────
+*.pem
+*.key
+*.p12
+*.pfx
+*.jks
+*.keystore
+secrets/
+credentials/
+
+
+# ───────────────────────────────────────────────────────────
+#  MISC
+# ───────────────────────────────────────────────────────────
+*.tmp
+*.temp
+*.swp
+*.bak
+*.orig
+.cache/
+tmp/
+temp/
