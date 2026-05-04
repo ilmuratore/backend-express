@@ -4,10 +4,10 @@ const path = require('path');
 
 const diskStorage = multer.diskStorage({
     destination: (req, file, cb) => {
-        cb(null, 'uploads/tmp');
+        cb(null, path.join(__dirname, '../uploads/tmp'));
     }, 
     filename: (req, file, cb) => {
-        const uniqueName = `${Date.now()}-${path.extname(file.originalname)}`;
+        const uniqueName = `${Date.now()}${path.extname(file.originalname)}`;
         cb(null, uniqueName)
     }
 })
@@ -28,7 +28,7 @@ const filterCSV = (req, file, cb) => {
 
 const upload = {
     csv: multer({
-        storage: memoryStorage, 
+        storage: diskStorage, 
         fileFilter: filterCSV,
         limits: { fileSize: 5 * 1024 * 1024} //5 MB
     })

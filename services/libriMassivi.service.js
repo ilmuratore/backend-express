@@ -55,8 +55,8 @@ const parseCSV = (buffer) => {
       autore: libro.autore,
       isbn: libro.isbn,
       anno_pubblicazione: libro.anno_pubblicazione ? parseInt(libro.anno_pubblicazione) : null,
-      genere: libro.genere ? parseInt(libro.genere) : 1 ,
-      quantita: libro.quantita,
+      genere: libro.genere || null ,
+      quantita: libro.quantita ? parseInt(libro.quantita, 10) : null
     };
 
     
