@@ -58,7 +58,8 @@ const update = (id, { nome, cognome, email, ruolo }) =>
      SET nome    = COALESCE($1, nome),
          cognome = COALESCE($2, cognome),
          email   = COALESCE($3, email),
-         ruolo   = COALESCE($4, ruolo)
+         ruolo   = COALESCE($4, ruolo),
+         token_version = token_version + 1
      WHERE id = $5
      RETURNING id, nome, cognome, email, ruolo`,
     [nome, cognome, email, ruolo, id]

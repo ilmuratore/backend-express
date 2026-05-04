@@ -71,7 +71,7 @@ const regolaAggiorna = [
 ];
 
 // Tutte le routes
-router.post('/', autenticato, regolaCrea,    validate, controller.crea);
+router.post('/', autenticato, soloAdmin, regolaCrea, validate, controller.crea);
 router.get('/', autenticato, controller.getAll);
 router.get('/isbn/:isbn', autenticato, controller.getByISBN);
 router.get('/:id', autenticato, regolaId, validate, controller.getById);
