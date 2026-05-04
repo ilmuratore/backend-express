@@ -69,7 +69,6 @@ app.use('/api/prestiti', prestitiRoutes);
 
 // ── Catch-all 404 ────────────────────────────────────────────
 // Se nessuna route sopra ha risposto, l'endpoint richiesto non esiste.
-// ✅ BUG CORRETTO #6 — typo: "Endopoint" → "Endpoint"
 app.use((req, res) => {
   res.status(404).json({ successo: false, errore: 'Endpoint non trovato' });
 });

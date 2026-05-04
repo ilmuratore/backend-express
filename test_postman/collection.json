@@ -1,0 +1,568 @@
+{
+  "info": {
+    "_postman_id": "6f763fc2-274c-471f-8619-87ca281de2af",
+    "name": "Biblioteca API (aggiornata)",
+    "description": "Collection aggiornata con tutti i fix di sicurezza:\n- FIX #1: token_version — il JWT viene invalidato dopo eliminazione utente o cambio password\n- FIX #2: ruolo rimosso dalla registrazione pubblica — si promuove ad admin solo tramite PATCH\n- FIX #3/#6: soloSéOAdmin su GET e PATCH /:id\n- FIX #4: utente_id letto dal JWT, non dal body del prestito\n- FIX #7: parseInt su tutti gli id\n\nFLUSSO CONSIGLIATO:\n1. Registra utente → 2. Login → token salvato automaticamente → 3. Usa le route protette",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://localhost:3000",
+      "type": "string"
+    },
+    {
+      "key": "token",
+      "value": "",
+      "type": "string",
+      "description": "Salvato automaticamente dallo script di test del Login"
+    },
+    {
+      "key": "utente_id",
+      "value": "",
+      "type": "string",
+      "description": "Salvato automaticamente dallo script di test della Registrazione"
+    }
+  ],
+  "item": [
+    {
+      "name": "Auth",
+      "description": "Endpoint pubblici — non richiedono token",
+      "item": [
+        {
+          "name": "Registra utente",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "// Salva l'id dell'utente appena creato nella variabile di collection",
+                  "// così le request successive (GET /:id, PATCH /:id) la usano subito",
+                  "const res = pm.response.json();",
+                  "if (res.successo && res.dati?.id) {",
+                  "  pm.collectionVariables.set('utente_id', res.dati.id);",
+                  "  console.log('utente_id salvato:', res.dati.id);",
+                  "}",
+                  "",
+                  "pm.test('Registrazione riuscita — status 201', () => {",
+                  "  pm.response.to.have.status(201);",
+                  "});",
+                  "pm.test('Risposta senza campo password', () => {",
+                  "  pm.expect(res.dati).to.not.have.property('password');",
+                  "});",
+                  "pm.test('Ruolo assegnato automaticamente a utente', () => {",
+                  "  pm.expect(res.dati.ruolo).to.eql('utente');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nome\": \"Mario\",\n  \"cognome\": \"Rossi\",\n  \"email\": \"mario@test.it\",\n  \"password\": \"Test@1234\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{base_url}}/api/utente/registra",
+              "host": ["{{base_url}}"],
+              "path": ["api", "utente", "registra"]
+            },
+            "description": "Registra un nuovo utente con ruolo 'utente'.\n\n🔒 FIX #2 — il campo 'ruolo' è stato rimosso: anche se inviato, viene ignorato dal server. Il ruolo è sempre 'utente'. Per creare un admin, usare 'Promuovi a admin' nella sezione Utenti.\n\n🔒 Nuova validazione password: minimo 8 caratteri, almeno una maiuscola, una minuscola, un numero e un carattere speciale."
+          },
+          "response": []
+        },
+        {
+          "name": "Login",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "// Il server restituisce il token JWT come stringa in res.dati",
+                  "// Lo salviamo nella variabile di collection {{token}}",
+                  "// che viene usata in automatico da tutte le altre request",
+                  "const res = pm.response.json();",
+                  "if (res.successo && res.dati) {",
+                  "  pm.collectionVariables.set('token', res.dati);",
+                  "  console.log('✅ Token JWT salvato in {{token}}');",
+                  "}",
+                  "",
+                  "pm.test('Login riuscito — status 200', () => {",
+                  "  pm.response.to.have.status(200);",
+                  "});",
+                  "pm.test('Token presente nella risposta', () => {",
+                  "  pm.expect(res.dati).to.be.a('string').and.not.empty;",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"mario@test.it\",\n  \"password\": \"Test@1234\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{base_url}}/api/utente/login",
+              "host": ["{{base_url}}"],
+              "path": ["api", "utente", "login"]
+            },
+            "description": "Autentica l'utente e salva automaticamente il JWT in {{token}}.\n\n🔒 FIX #1 — il token ora include token_version nel payload. Il middleware autenticato() verifica ad ogni richiesta che il valore coincida con quello nel DB."
+          },
+          "response": []
+        },
+        {
+          "name": "Login (admin)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const res = pm.response.json();",
+                  "if (res.successo && res.dati) {",
+                  "  pm.collectionVariables.set('token', res.dati);",
+                  "  console.log('✅ Token ADMIN salvato in {{token}}');",
+                  "}",
+                  "pm.test('Login admin — status 200', () => {",
+                  "  pm.response.to.have.status(200);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"admin@test.it\",\n  \"password\": \"Admin@1234\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{base_url}}/api/utente/login",
+              "host": ["{{base_url}}"],
+              "path": ["api", "utente", "login"]
+            },
+            "description": "Login con credenziali admin. Sovrascrive {{token}} con un token che ha ruolo 'admin'.\n\n⚠️ Per creare il primo admin: registra un utente normale, poi aggiorna manualmente il campo ruolo nel DB:\n  UPDATE utenti SET ruolo='admin' WHERE email='admin@test.it';\nDopo il primo admin, usa 'Promuovi a admin' per gli altri."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Utenti",
+      "description": "Tutte le route richiedono JWT. GET e PATCH /:id richiedono soloSéOAdmin.",
+      "item": [
+        {
+          "name": "GET tutti gli utenti (solo admin)",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/utente",
+              "host": ["{{base_url}}"],
+              "path": ["api", "utente"]
+            },
+            "description": "Restituisce la lista completa degli utenti.\n🔒 Solo admin — risponde 403 se il token non ha ruolo 'admin'.\n🔒 FIX #5 — il campo 'password' non viene mai restituito."
+          },
+          "response": []
+        },
+        {
+          "name": "GET utente per id (sé o admin)",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/utente/{{utente_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "utente", "{{utente_id}}"]
+            },
+            "description": "Restituisce i dati di un singolo utente.\n🔒 FIX #6 — soloSéOAdmin: accessibile solo dall'utente stesso o da un admin. Risponde 403 se un altro utente prova ad accedere.\n🔒 FIX #5 — campo 'password' escluso dalla risposta."
+          },
+          "response": []
+        },
+        {
+          "name": "PATCH aggiorna utente (sé o admin)",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nome\": \"Mario\",\n  \"cognome\": \"Bianchi\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{base_url}}/api/utente/{{utente_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "utente", "{{utente_id}}"]
+            },
+            "description": "Aggiornamento parziale dei dati anagrafici.\n🔒 FIX #3 — soloSéOAdmin: un utente può modificare solo sé stesso. Un admin può modificare chiunque."
+          },
+          "response": []
+        },
+        {
+          "name": "PATCH promuovi a admin (solo admin)",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"ruolo\": \"admin\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{base_url}}/api/utente/{{utente_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "utente", "{{utente_id}}"]
+            },
+            "description": "Promuove un utente al ruolo 'admin'.\n🔒 FIX #2 — il ruolo NON può essere impostato in fase di registrazione: si cambia solo qui, con un token admin già attivo.\n\nFLUSSO:\n1. Login (admin) → {{token}} aggiornato\n2. Invia PATCH con { ruolo: 'admin' } sull'id desiderato"
+          },
+          "response": []
+        },
+        {
+          "name": "DELETE elimina utente (solo admin)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Eliminazione riuscita — status 200', () => {",
+                  "  pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "// 🔒 FIX #1 — dopo l'eliminazione, il JWT dell'utente eliminato",
+                  "// viene rifiutato automaticamente: autenticato() fa una query",
+                  "// che non trova più la riga → risponde 401.",
+                  "// Per verificarlo: copia il token dell'utente eliminato",
+                  "// e prova a fare una richiesta protetta → deve tornare 401."
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/utente/{{utente_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "utente", "{{utente_id}}"]
+            },
+            "description": "Elimina un utente per id.\n🔒 Solo admin.\n🔒 FIX #1 — dopo l'eliminazione, qualsiasi richiesta con il vecchio JWT dell'utente eliminato riceve 401: autenticato() non trova più la riga nel DB."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Libri",
+      "description": "GET accessibili a tutti gli utenti autenticati. POST/PATCH/DELETE solo admin.",
+      "item": [
+        {
+          "name": "POST crea libro (solo admin)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const res = pm.response.json();",
+                  "if (res.successo && res.dati?.id) {",
+                  "  pm.collectionVariables.set('libro_id', res.dati.id);",
+                  "  console.log('libro_id salvato:', res.dati.id);",
+                  "}",
+                  "pm.test('Creazione riuscita — status 201', () => {",
+                  "  pm.response.to.have.status(201);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"titolo\": \"Il Nome della Rosa\",\n  \"autore\": \"Umberto Eco\",\n  \"isbn\": \"9788845292613\",\n  \"anno_pubblicazione\": 1980,\n  \"genere\": \"Romanzo storico\",\n  \"quantita\": 3\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{base_url}}/api/libri",
+              "host": ["{{base_url}}"],
+              "path": ["api", "libri"]
+            },
+            "description": "Aggiunge un nuovo libro al catalogo.\n🔒 Solo admin.\nL'id del libro creato viene salvato automaticamente in {{libro_id}}."
+          },
+          "response": []
+        },
+        {
+          "name": "GET tutti i libri",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/libri",
+              "host": ["{{base_url}}"],
+              "path": ["api", "libri"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "GET libro per id",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/libri/{{libro_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "libri", "{{libro_id}}"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "GET libro per ISBN",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/libri/isbn/9788845292613",
+              "host": ["{{base_url}}"],
+              "path": ["api", "libri", "isbn", "9788845292613"]
+            },
+            "description": "⚠️ URL corretta: /api/libri/isbn/:isbn\nNella collection precedente mancava il segmento 'isbn' → la route non veniva trovata."
+          },
+          "response": []
+        },
+        {
+          "name": "PATCH aggiorna libro (solo admin)",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"genere\": \"Giallo storico\",\n  \"quantita\": 5\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{base_url}}/api/libri/{{libro_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "libri", "{{libro_id}}"]
+            },
+            "description": "Aggiornamento parziale — invia solo i campi da modificare (COALESCE nel model).\n🔒 Solo admin."
+          },
+          "response": []
+        },
+        {
+          "name": "DELETE elimina libro (solo admin)",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/libri/{{libro_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "libri", "{{libro_id}}"]
+            },
+            "description": "🔒 Solo admin."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Prestiti",
+      "description": "Tutte le route richiedono autenticazione.",
+      "item": [
+        {
+          "name": "POST crea prestito",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const res = pm.response.json();",
+                  "if (res.successo && res.dati?.id) {",
+                  "  pm.collectionVariables.set('prestito_id', res.dati.id);",
+                  "  console.log('prestito_id salvato:', res.dati.id);",
+                  "}",
+                  "pm.test('Prestito creato — status 201', () => {",
+                  "  pm.response.to.have.status(201);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"libro_id\": 1,\n  \"data_restituzione_prevista\": \"2026-12-31\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{base_url}}/api/prestiti",
+              "host": ["{{base_url}}"],
+              "path": ["api", "prestiti"]
+            },
+            "description": "Crea un nuovo prestito per il libro specificato.\n🔒 FIX #4 — utente_id rimosso dal body: il server lo legge direttamente dal JWT (req.utente.id). Anche se lo invii nel body, viene ignorato. Un utente non può creare prestiti intestati ad altri."
+          },
+          "response": []
+        },
+        {
+          "name": "GET tutti i prestiti",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/prestiti",
+              "host": ["{{base_url}}"],
+              "path": ["api", "prestiti"]
+            },
+            "description": "Restituisce tutti i prestiti. Prima di rispondere aggiorna automaticamente a 'in_ritardo' i prestiti scaduti."
+          },
+          "response": []
+        },
+        {
+          "name": "GET prestito per id",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/prestiti/{{prestito_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "prestiti", "{{prestito_id}}"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "PATCH restituisci prestito",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Restituzione riuscita — status 200', () => {",
+                  "  pm.response.to.have.status(200);",
+                  "});",
+                  "pm.test('Stato aggiornato a restituito', () => {",
+                  "  const res = pm.response.json();",
+                  "  pm.expect(res.dati.stato).to.eql('restituito');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "PATCH",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/prestiti/{{prestito_id}}/restituisci",
+              "host": ["{{base_url}}"],
+              "path": ["api", "prestiti", "{{prestito_id}}", "restituisci"]
+            },
+            "description": "Segna il prestito come restituito e incrementa la disponibilità del libro.\nNon richiede body.\n\n⚠️ Rimossa la request 'PATCH aggiorna prestito' che usava /api/prestiti/:id con body { stato } — quella route non esiste. L'unico endpoint di modifica è questo: /api/prestiti/:id/restituisci"
+          },
+          "response": []
+        },
+        {
+          "name": "DELETE elimina prestito (solo admin)",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/prestiti/{{prestito_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "prestiti", "{{prestito_id}}"]
+            },
+            "description": "🔒 Solo admin."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Health check",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Server raggiungibile — status 200', () => {",
+              "  pm.response.to.have.status(200);",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/",
+          "host": ["{{base_url}}"],
+          "path": [""]
+        },
+        "description": "Verifica che il server sia avviato e il DB inizializzato correttamente."
+      },
+      "response": []
+    }
+  ]
+}
