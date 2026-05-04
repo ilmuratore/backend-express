@@ -13,7 +13,7 @@ const regolaId = [
 ];
 
 const regolaCrea = [
-  // 🔒 FIX #4 — utente_id rimosso dalla validazione del body:
+  // FIX #4 — utente_id rimosso dalla validazione del body:
   // viene letto direttamente dal JWT nel controller (req.utente.id).
   // Anche se il client lo invia, il controller lo ignora.
 
@@ -34,7 +34,7 @@ const regolaCrea = [
     }),
 ];
 
-// /:id/restituisci DEVE stare prima di /:id (stesso verbo PATCH)
+// Tutte le routes
 router.post('/',                 autenticato, regolaCrea, validate, controller.crea);
 router.get('/',                  autenticato, controller.getAll);
 router.get('/:id',               autenticato, regolaId, validate, controller.getById);

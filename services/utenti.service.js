@@ -49,7 +49,7 @@ const login = async ({ email, password }) => {
     throw err;
   }
 
-  // 🔒 FIX #1 — includiamo token_version nel payload JWT.
+  // FIX #1 — includiamo token_version nel payload JWT.
   // Il middleware autenticato() confronterà questo valore con quello
   // nel DB ad ogni richiesta: se cambiano, il token viene rifiutato.
   const token = jwt.sign(
@@ -90,7 +90,7 @@ const aggiorna = async (id, dati) => {
 const elimina = async (id) => {
   await getById(id);
   await utenteModel.remove(id);
-  // 🔒 FIX #1 — la riga è stata eliminata: la prossima richiesta
+  // FIX #1 — la riga è stata eliminata: la prossima richiesta
   // con il vecchio JWT non troverà l'utente nel DB → 401 automatico.
   return { message: 'Utente eliminato' };
 };

@@ -12,10 +12,6 @@
 const libriModel = require('../models/libri');
 
 // Crea un nuovo libro dopo aver verificato che l'ISBN non sia già presente.
-// ✅ BUG CORRETTO #5 — ISBN è opzionale: se non viene inviato (undefined),
-//    la query precedente cercava "WHERE isbn = null" e non trovava duplicati
-//    ma poteva creare righe con isbn NULL multipli.
-//    Ora il controllo viene saltato se isbn non è fornito.
 const crea = async (dati) => {
   if (dati.isbn) {
     const result = await libriModel.findByIsbn(dati.isbn);

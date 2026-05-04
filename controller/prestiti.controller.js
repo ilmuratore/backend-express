@@ -7,7 +7,7 @@ const prestitiService = require('../services/prestiti.service');
 // POST /
 const crea = async (req, res, next) => {
   try {
-    // 🔒 FIX #4 — utente_id viene letto da req.utente.id (il JWT verificato),
+    // FIX #4 — utente_id viene letto da req.utente.id (il JWT verificato),
     // NON dal body della richiesta. In questo modo un utente non può
     // creare un prestito intestato a un altro utente.
     const utente_id = req.utente.id;

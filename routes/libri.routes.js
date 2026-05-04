@@ -70,8 +70,7 @@ const regolaAggiorna = [
     .isLength({ max: 100 }).withMessage('Il genere non può superare 100 caratteri'),
 ];
 
-// La route /isbn/:isbn deve stare PRIMA di /:id.
-// Se stesse dopo, Express intercetterebbe "isbn" come valore del parametro :id.
+// Tutte le routes
 router.post('/', autenticato, regolaCrea,    validate, controller.crea);
 router.get('/', autenticato, controller.getAll);
 router.get('/isbn/:isbn', autenticato, controller.getByISBN);

@@ -10,13 +10,10 @@ const utenteModel = require('../models/utenti');
 //   - l'utente esista ancora
 //   - token_version nel token coincida con quella nel DB
 //
-// 🔒 FIX #1 — questa query aggiuntiva risolve due scenari:
+// FIX #1 — questa query aggiuntiva risolve due scenari:
 //   a) Utente eliminato: la riga non esiste → 401
 //   b) Password cambiata: token_version è cambiata → 401
 //
-// Trade-off da spiegare agli studenti: ogni richiesta autenticata
-// ora fa una query in più sul DB. In produzione ad alto traffico
-// si ottimizza con una cache (Redis) sul risultato.
 const autenticato = async (req, res, next) => {
   const auth = req.headers.authorization;
 
@@ -62,8 +59,8 @@ const soloAdmin = (req, res, next) => {
   next();
 };
 
-// ── soloSéOAdmin ──────────────────────────────────────────────
-// 🔒 FIX #3 e #6 — Consente l'accesso solo se:
+// ── solo se Admin ──────────────────────────────────────────────
+// FIX #3 e #6 — Consente l'accesso solo se:
 //   - l'utente sta operando su sé stesso (req.utente.id === req.params.id)
 //   - oppure è un admin
 //

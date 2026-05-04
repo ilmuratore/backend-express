@@ -31,10 +31,10 @@ const getAll = async (req, res, next) => {
 // GET /:id
 const getById = async (req, res, next) => {
   try {
-    // 🔒 FIX #7 — parseInt converte la stringa URL in numero intero.
+    // FIX #7 — parseInt converte la stringa URL in numero intero.
     // req.params.id è sempre una stringa: "5" !== 5 in JavaScript.
     // Senza parseInt il confronto req.utente.id === req.params.id
-    // in soloSéOAdmin fallirebbe sempre (number vs string).
+    // in solo se Admin fallirebbe sempre (number vs string).
     const id = parseInt(req.params.id);
     const utente = await utenteService.getById(id);
     res.json({ successo: true, dati: utente });

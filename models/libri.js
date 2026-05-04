@@ -75,8 +75,6 @@ const update = (id, { titolo, autore, isbn, anno_pubblicazione, genere }) =>
 
 // Decrementa la quantità di 1 quando un libro viene prestato.
 // CASE aggiorna anche il flag "disponibile": diventa false se non restano copie.
-// ✅ BUG CORRETTO #1 — mancava "return": senza di esso la funzione restituiva
-//    undefined invece della Promise, e l'await nel service non funzionava.
 const decrementa = (id) =>
   pool.query(
     `UPDATE libri
@@ -89,8 +87,6 @@ const decrementa = (id) =>
 
 // Incrementa la quantità di 1 quando un libro rientra dal prestito.
 // Il libro torna disponibile non appena rientra almeno una copia.
-// ✅ BUG CORRETTO #1 — stessa correzione: aggiunto "return" implicito
-//    usando la forma arrow senza parentesi graffe.
 const incrementa = (id) =>
   pool.query(
     `UPDATE libri

@@ -44,7 +44,7 @@ const regolaRegistra = [
     return true;
   }),
 
-  // 🔒 FIX #2 — il campo "ruolo" è stato rimosso dalla validazione.
+  // FIX #2 — il campo "ruolo" è stato rimosso dalla validazione.
   // Anche se il client lo invia, il service lo ignora e imposta sempre 'utente'.
   // Il ruolo si modifica solo tramite PATCH /:id da un admin autenticato.
 ];
@@ -95,11 +95,11 @@ router.post('/login',    limiterAuth, regolaLogin,    validate, controller.login
 // Solo admin può vedere la lista completa degli utenti
 router.get('/', autenticato, soloAdmin, controller.getAll);
 
-// 🔒 FIX #6 — soloSéOAdmin: solo l'utente stesso o un admin
+// FIX #6 — solo se Admin: solo l'utente stesso o un admin
 // può leggere i dati di un profilo
 router.get('/:id', autenticato, soloSéOAdmin, regolaId, validate, controller.getById);
 
-// 🔒 FIX #3 — soloSéOAdmin: solo l'utente stesso o un admin
+// FIX #3 — solo se Admin: solo l'utente stesso o un admin
 // può modificare un profilo
 router.patch('/:id', autenticato, soloSéOAdmin, regolaAggiorna, validate, controller.aggiorna);
 

@@ -6,7 +6,7 @@ const prestitiModel = require('../models/prestiti');
 const libriModel    = require('../models/libri');
 const utenteModel   = require('../models/utenti');
 
-// 🔒 FIX #4 — utente_id non viene più letto dal body della richiesta,
+// FIX #4 — utente_id non viene più letto dal body della richiesta,
 // ma viene ricevuto come parametro esplicito dal controller,
 // che lo legge da req.utente.id (il JWT verificato).
 // In questo modo un utente non può creare prestiti a nome di altri.

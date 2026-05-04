@@ -13,20 +13,13 @@ const CREATE_TABLE = `
     password      VARCHAR(255)  NOT NULL,
     ruolo         VARCHAR(20)   NOT NULL DEFAULT 'utente'
                   CHECK (ruolo IN ('admin', 'utente')),
-
-    -- 🔒 FIX #1 — token_version è un contatore intero che viene incluso
-    -- nel payload JWT al momento del login. Ad ogni richiesta autenticata,
-    -- il middleware verifica che il valore nel token corrisponda a quello
-    -- nel database. Se un utente viene eliminato o cambia password,
-    -- il contatore viene incrementato (o la riga sparisce), rendendo
-    -- immediatamente invalidi tutti i token precedenti.
     token_version INTEGER       NOT NULL DEFAULT 0
   );
 `;
 
 const init = () => pool.query(CREATE_TABLE);
 
-// 🔒 FIX #5 — Le query di lettura non restituiscono MAI la colonna "password".
+// FIX #5 — Le query di lettura non restituiscono MAI la colonna "password".
 // Anche se è un hash bcrypt, non deve uscire dalle API.
 // L'unica eccezione è findByEmail (usata nel login) che ha bisogno
 // dell'hash per confrontarlo con bcrypt.compare().
@@ -72,7 +65,7 @@ const update = (id, { nome, cognome, email, ruolo }) =>
   );
 
 // Aggiorna la password E incrementa token_version.
-// 🔒 FIX #1 — incrementare token_version invalida tutti i JWT emessi
+// FIX #1 — incrementare token_version invalida tutti i JWT emessi
 // prima del cambio password: anche se il vecchio token non è ancora scaduto,
 // il middleware lo rifiuterà perché il numero non coincide più.
 const updatePassword = (id, hashedPassword) =>
@@ -86,7 +79,7 @@ const updatePassword = (id, hashedPassword) =>
   );
 
 // Elimina un utente per id.
-// 🔒 FIX #1 — non serve aggiornare token_version: la riga sparisce dal DB,
+// FIX #1 — non serve aggiornare token_version: la riga sparisce dal DB,
 // quindi la query di verifica in autenticato() non troverà nulla
 // e restituirà 401 automaticamente.
 const remove = (id) =>
