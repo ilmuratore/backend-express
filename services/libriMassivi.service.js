@@ -1,76 +1,75 @@
-const libriModel = require("../models/libri");
+const libriModel = require('../models/libri');
 
 const parseCSV = (buffer) => {
   const testo = buffer.toString('utf8');
   const righe = testo
-    .split("\n")
-    .map((r) => r.trim())
-    .filter((r) => r.length > 0);
+    .split('\n')
+    .map(r => r.trim())
+    .filter(r => r.length > 0);
 
   if (righe.length < 2) {
-    const err = new Error(
-      "Il CSV deve avere almeno una riga di intestazione e una di dati ",
-    );
+    const err = new Error('Il CSV deve avere almeno una riga di intestazione e una di dati');
     err.statusCode = 400;
     throw err;
   }
 
-  const intestazioneTabella = righe[0]
-    .split(",")
-    .map((h) => h.trim().toLowerCase());
+  const intestazione = righe[0].split(',').map(h => h.trim().toLowerCase());
 
-  const campiObbligatori = [
-    "titolo",
-    "autore",
-    "isbn",
-    "anno_pubblicazione",
-    "genere",
-    "quantita",
-  ];
+  const campiObbligatori = ['titolo', 'autore', 'isbn', 'anno_pubblicazione', 'genere', 'quantita'];
   for (const campo of campiObbligatori) {
-    if (!intestazioneTabella.includes(campo)) {
-      const err = new Error(
-        `Campo obbligatorio mancante nell'intestazione: ${campo}`,
-      );
+    if (!intestazione.includes(campo)) {
+      const err = new Error(`Campo obbligatorio mancante nell'intestazione: ${campo}`);
       err.statusCode = 400;
       throw err;
     }
   }
 
   const libri = righe.slice(1).map((riga, indice) => {
-    const valore = riga.split(",").map((v) => v.trim());
+    const valori = riga.split(',').map(v => v.trim());
 
-    const libro = {}; // body richiesta
-    intestazioneTabella.forEach((intestazioneTabella, i) => {
-      libro[intestazioneTabella] = valore[i];
+    const libro = {};
+    intestazione.forEach((col, i) => {
+      libro[col] = valori[i] ?? '';
     });
+
+
     if (!libro.titolo) {
       const err = new Error(`Riga ${indice + 1}: titolo mancante`);
       err.statusCode = 400;
       throw err;
     }
+    if (!libro.autore) {
+      const err = new Error(`Riga ${indice + 1}: autore mancante`);
+      err.statusCode = 400;
+      throw err;
+    }
+    const quantitaParsata = parseInt(libro.quantita, 10);
+    const quantita = !isNaN(quantitaParsata) && quantitaParsata >= 0
+      ? quantitaParsata
+      : 1;
+
+    const annoParsato = parseInt(libro.anno_pubblicazione, 10);
 
     return {
-      titolo: libro.titolo,
-      autore: libro.autore,
-      isbn: libro.isbn,
-      anno_pubblicazione: libro.anno_pubblicazione ? parseInt(libro.anno_pubblicazione) : null,
-      genere: libro.genere || null ,
-      quantita: libro.quantita ? parseInt(libro.quantita, 10) : null
+      titolo:             libro.titolo,
+      autore:             libro.autore,
+      isbn:               libro.isbn               || null,
+      anno_pubblicazione: !isNaN(annoParsato)       ? annoParsato : null,
+      genere:             libro.genere              || null,
+      quantita,
     };
-
-    
   });
+
   return libri;
 };
 
 const importaLibri = async (buffer) => {
   const libri = parseCSV(buffer);
   const risultato = {
-    totale: libri.length,
+    totale:   libri.length,
     inseriti: 0,
-    saltato: [],
-    errori: [],
+    saltato:  [],
+    errori:   [],
   };
 
   for (const libro of libri) {
@@ -80,7 +79,7 @@ const importaLibri = async (buffer) => {
         if (esiste.rows.length) {
           risultato.saltato.push({
             titolo: libro.titolo,
-            motivo: `ISBN giá presente nel DB`,
+            motivo: 'ISBN già presente nel DB',
           });
           continue;
         }
@@ -94,8 +93,8 @@ const importaLibri = async (buffer) => {
       });
     }
   }
+
   return risultato;
 };
-
 
 module.exports = { importaLibri };

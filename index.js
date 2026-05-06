@@ -9,7 +9,7 @@ const errorHandler = require('./middleware/errorHandler');
 const helmet       = require('helmet');
 const rateLimit    = require('express-rate-limit');
 const seedAdmin    = require('./middleware/seeder');
-// const cors = require('cors'); // Decommentare quando si collega il frontend
+const cors = require('cors'); // Decommentare quando si collega il frontend
 
 require('dotenv').config(); // Carica le variabili da .env in process.env
 
@@ -45,15 +45,15 @@ app.use(express.json());
 // helmet aggiunge header HTTP di sicurezza (anti-XSS, clickjacking, ecc.)
 app.use(helmet());
 
-/*
-// cors controlla quali origini esterne possono chiamare le nostre API.
+
+// Cors controlla quali origini esterne possono chiamare le nostre API.
 // Da decommentare e configurare quando il frontend è attivo.
 app.use(cors({
   origin: 'http://localhost:5173',           // URL del frontend
   methods: ['GET', 'POST', 'PATCH', 'DELETE'],
   allowedHeaders: ['Content-Type', 'Authorization']
 }));
-*/
+
 
 app.use(limiterGlobale);
 
@@ -68,9 +68,7 @@ app.get('/', (req, res) => {
 app.use('/api/utente',   utenteRoutes);
 app.use('/api/libri',    libriRoutes);
 app.use('/api/prestiti', prestitiRoutes);
-
-// ── Route secondarie ─────────────────────────────────────────
-app.use('/api/libri' , libriMassiviRoutes);
+app.use('/api/import',   libriMassiviRoutes);
 
 
 // ── Catch-all 404 ────────────────────────────────────────────

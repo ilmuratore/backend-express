@@ -1,37 +1,28 @@
 const multer = require('multer');
-const path = require('path');
-
-
-const diskStorage = multer.diskStorage({
-    destination: (req, file, cb) => {
-        cb(null, path.join(__dirname, '../uploads/tmp'));
-    }, 
-    filename: (req, file, cb) => {
-        const uniqueName = `${Date.now()}${path.extname(file.originalname)}`;
-        cb(null, uniqueName)
-    }
-})
+const path   = require('path');
 
 const memoryStorage = multer.memoryStorage();
 
 const filterCSV = (req, file, cb) => {
     const mimeOK = file.mimetype === 'text/csv' ||
                    file.mimetype === 'application/vnd.ms-excel';
-    const extOk = path.extname(file.originalname).toLocaleLowerCase() === '.csv';
+    const extOk  = path.extname(file.originalname).toLowerCase() === '.csv';
 
-    if( mimeOK || extOk ){
-        cb(null, true)
+    // OR intenzionale: su Windows i CSV arrivano spesso con MIME 'application/vnd.ms-excel'.
+    // Accettiamo se il MIME è corretto O se l'estensione è .csv.
+    if (mimeOK || extOk) {
+        cb(null, true);
     } else {
-        cb(new Error ('Formato non supportato: carica un file corretto'), false);
+        cb(new Error('Formato non supportato: carica un file .csv'), false);
     }
-}
+};
 
 const upload = {
     csv: multer({
-        storage: diskStorage, 
+        storage: memoryStorage,      
         fileFilter: filterCSV,
-        limits: { fileSize: 5 * 1024 * 1024} //5 MB
+        limits: { fileSize: 5 * 1024 * 1024 } // 5 MB
     })
-}
+};
 
-module.exports = upload
+module.exports = upload;
